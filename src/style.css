@@ -1,0 +1,39 @@
+#local-controls {
+    padding: 5px;
+}
+
+button {
+    margin: 2px;
+}
+
+.flex-container {
+    display: flex;
+    flex-direction: column;
+}
+
+#graphs {
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.chart-div {
+    width: 50%;
+}
+
+#videos {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+video {
+    width: 33%;
+}
+
+.unmuted {
+    background-color: #33FFBD;
+}
+
+.muted {
+    background-color: #FF5733;
+}
