@@ -26,6 +26,7 @@ export default class Stats {
   }
 
   initializeCharts() {
+    const bitrateCtx = document.getElementById("bitrateChart");
     const avgCtx = document.getElementById("avgJitterChart");
     const mAvgCtx = document.getElementById("mAvgJitterChart");
     const plCtx = document.getElementById("packetLossChart");
@@ -60,6 +61,45 @@ export default class Stats {
         data: [],
       },
     ];
+
+    this.bitrateChart = new Chart(bitrateCtx, {
+      type: "line",
+      data: {
+        labels: [],
+        datasets: [
+          {
+            label: "videoSend",
+            data: [],
+          },
+          {
+            label: "videoRecv",
+            data: [],
+          },
+          {
+            label: "audioSend",
+            data: [],
+          },
+          {
+            label: "audioRecv",
+            data: [],
+          },
+        ],
+      },
+      options: {
+        plugin: {
+          legend: {
+            title: "bitrates",
+            hidden: false,
+          },
+        },
+        plugins: {
+          annotation: {
+            annotations: this.annotations,
+          },
+        },
+      },
+    });
+
     this.avgJitterChart = new Chart(avgCtx, {
       type: "line",
       data: {
@@ -199,7 +239,6 @@ export default class Stats {
   setupStatsInterval() {
     this.statsInterval = setInterval(async () => {
       const netStats = await daily.call.getNetworkStats();
-      console.log(netStats);
       const latestStats = netStats.stats.latest;
       if (!this.statsStartTime) {
         this.statsStartTime = latestStats.timestamp;
@@ -207,32 +246,41 @@ export default class Stats {
       }
 
       const startTime = this.statsStartTime;
-      this.avgJitterChart.data.labels.push(
-        (latestStats.timestamp - startTime) / 1000
-      );
+      const timeLabel = (latestStats.timestamp - startTime) / 1000;
+      console.log(`${timeLabel}`, netStats);
+      this.bitrateChart.data.labels.push(timeLabel);
+      if (this.bitrateChart.data.labels.length > MAX_DATA) {
+        this.bitrateChart.data.labels.shift();
+      }
+      this.avgJitterChart.data.labels.push(timeLabel);
       if (this.avgJitterChart.data.labels.length > MAX_DATA) {
         this.avgJitterChart.data.labels.shift();
       }
-      this.mAvgJitterChart.data.labels.push(
-        (latestStats.timestamp - startTime) / 1000
-      );
+      this.mAvgJitterChart.data.labels.push(timeLabel);
       if (this.mAvgJitterChart.data.labels.length > MAX_DATA) {
         this.mAvgJitterChart.data.labels.shift();
       }
-      this.packetLossChart.data.labels.push(
-        (latestStats.timestamp - startTime) / 1000
-      );
+      this.packetLossChart.data.labels.push(timeLabel);
       if (this.packetLossChart.data.labels.length > MAX_DATA) {
         this.packetLossChart.data.labels.shift();
       }
-      this.qualityChart.data.labels.push(
-        (latestStats.timestamp - startTime) / 1000
-      );
+      this.qualityChart.data.labels.push(timeLabel);
       if (this.qualityChart.data.labels.length > MAX_DATA) {
         this.qualityChart.data.labels.shift();
       }
 
-      let _updateDatasets = (label, jitter, pl) => {
+      let _updateDatasets = (label, bitrate, jitter, pl) => {
+        // fill in bitrate chart
+        let bitrateData = this.bitrateChart.data.datasets.find(
+          (ds) => ds.label === label
+        );
+        const curRate = bitrate != null ? bitrate : 0;
+
+        bitrateData.data.push(curRate);
+        if (bitrateData.length > MAX_DATA) {
+          bitrateData.data.shift();
+        }
+
         // fill in avg jitter chart
         let avgJitterData = this.avgJitterChart.data.datasets.find(
           (ds) => ds.label === label
@@ -275,26 +323,30 @@ export default class Stats {
         }
 
         console.log(
-          `!!! ${label}: { avg: ${curAvg}, mAvg: ${mAvg}, pl: ${curPL} }`
+          `!!! ${label}: { bitrate: ${bitrate}, avg: ${curAvg}, mAvg: ${mAvg}, pl: ${curPL} }`
         );
       };
       _updateDatasets(
         "videoSend",
+        latestStats.videoSendBitsPerSecond,
         latestStats.videoSendJitter,
         latestStats.videoSendPacketLoss
       );
       _updateDatasets(
         "videoRecv",
+        latestStats.videoRecvBitsPerSecond,
         latestStats.videoRecvJitter,
         latestStats.videoRecvPacketLoss
       );
       _updateDatasets(
         "audioSend",
+        latestStats.audioSendBitsPerSecond,
         latestStats.audioSendJitter,
         latestStats.audioSendPacketLoss
       );
       _updateDatasets(
         "audioRecv",
+        latestStats.audioRecvBitsPerSecond,
         latestStats.audioRecvJitter,
         latestStats.audioRecvPacketLoss
       );
@@ -310,6 +362,7 @@ export default class Stats {
         qualityData.data.shift();
       }
 
+      this.bitrateChart.update();
       this.avgJitterChart.update();
       this.mAvgJitterChart.update();
       this.packetLossChart.update();

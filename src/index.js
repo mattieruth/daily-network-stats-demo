@@ -71,6 +71,7 @@ function _graphsSection() {
   graphsDiv.classList.add("flex-container");
   graphsDiv.id = "graphs";
 
+  graphsDiv.appendChild(_addGraph("bitrate", "bitrates"));
   graphsDiv.appendChild(_addGraph("avgJitter", "average jitter"));
   graphsDiv.appendChild(_addGraph("mAvgJitter", "moving average jitter"));
   graphsDiv.appendChild(_addGraph("packetLoss", "packet loss"));

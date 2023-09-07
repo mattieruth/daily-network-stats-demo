@@ -6,8 +6,8 @@ This demo joins a call and polls the `getNetworkStats()` endpoint every 2 second
 
 1. Setup your room url constant
    ```
-   $ cp js/_consts.js js/consts.js
-   # modify contents of js/consts.js
+   $ cp src/_consts.js src/consts.js
+   # modify contents of src/consts.js
    ```
 2. Build
    ```
