@@ -27,10 +27,12 @@ export default class Stats {
 
   initializeCharts() {
     const bitrateCtx = document.getElementById("bitrateChart");
+    const aobCtx = document.getElementById("aobChart");
     const avgCtx = document.getElementById("avgJitterChart");
     const mAvgCtx = document.getElementById("mAvgJitterChart");
     const plCtx = document.getElementById("packetLossChart");
     const qCtx = document.getElementById("qualityChart");
+    this.aobVals = [];
     this.avgJitterVals = {
       videoSend: [],
       videoRecv: [],
@@ -89,6 +91,36 @@ export default class Stats {
         plugin: {
           legend: {
             title: "bitrates",
+            hidden: false,
+          },
+        },
+        plugins: {
+          annotation: {
+            annotations: this.annotations,
+          },
+        },
+      },
+    });
+
+    this.aobChart = new Chart(aobCtx, {
+      type: "line",
+      data: {
+        labels: [],
+        datasets: [
+          {
+            label: "availableOutgoingBitrate",
+            data: [],
+          },
+          {
+            label: "moving avg availableOutgoingBitrate",
+            data: [],
+          },
+        ],
+      },
+      options: {
+        plugin: {
+          legend: {
+            title: "available outgoing bitrate",
             hidden: false,
           },
         },
@@ -252,6 +284,10 @@ export default class Stats {
       if (this.bitrateChart.data.labels.length > MAX_DATA) {
         this.bitrateChart.data.labels.shift();
       }
+      this.aobChart.data.labels.push(timeLabel);
+      if (this.aobChart.data.labels.length > MAX_DATA) {
+        this.aobChart.data.labels.shift();
+      }
       this.avgJitterChart.data.labels.push(timeLabel);
       if (this.avgJitterChart.data.labels.length > MAX_DATA) {
         this.avgJitterChart.data.labels.shift();
@@ -351,6 +387,29 @@ export default class Stats {
         latestStats.audioRecvPacketLoss
       );
 
+      // update aob chart
+      const aobData = this.aobChart.data.datasets[0];
+      const lastAOB = this.lastAOB || 0;
+      const curAOB =
+        latestStats.availableOutgoingBitrate != null
+          ? latestStats.availableOutgoingBitrate
+          : lastAOB;
+      this.lastAOB = curAOB;
+
+      this.aobVals.push(curAOB);
+      aobData.data.push(curAOB);
+      if (aobData.data.length > MAX_DATA) {
+        aobData.data.shift();
+      }
+      // fill in moving average for aob
+      let mAvgAOBData = this.aobChart.data.datasets[1];
+      let last20 = this.aobVals.slice(-10);
+      const mAvg = last20.reduce((a, f) => a + f) / last20.length;
+      mAvgAOBData.data.push(mAvg);
+      if (mAvgAOBData.data.length > MAX_DATA) {
+        mAvgAOBData.data.shift();
+      }
+
       // update quality chart
       const qualityData = this.qualityChart.data.datasets[0];
       const lastQ = this.lastQ || 0;
@@ -363,6 +422,7 @@ export default class Stats {
       }
 
       this.bitrateChart.update();
+      this.aobChart.update();
       this.avgJitterChart.update();
       this.mAvgJitterChart.update();
       this.packetLossChart.update();

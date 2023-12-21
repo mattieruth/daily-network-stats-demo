@@ -72,6 +72,7 @@ function _graphsSection() {
   graphsDiv.id = "graphs";
 
   graphsDiv.appendChild(_addGraph("bitrate", "bitrates"));
+  graphsDiv.appendChild(_addGraph("aob", "availableOutgoingBitrate"));
   graphsDiv.appendChild(_addGraph("avgJitter", "average jitter"));
   graphsDiv.appendChild(_addGraph("mAvgJitter", "moving average jitter"));
   graphsDiv.appendChild(_addGraph("packetLoss", "packet loss"));
@@ -103,6 +104,7 @@ function toggleMute() {
   for (let el of audioEls) {
     el.muted = shouldMute;
   }
+  daily.shushMode = shouldMute;
 }
 
 window.daily = new DailyCall();

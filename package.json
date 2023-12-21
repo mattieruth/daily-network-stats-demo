@@ -19,7 +19,7 @@
     "webpack-dev-server": "^4.15.1"
   },
   "dependencies": {
-    "@daily-co/daily-js": "^0.49.1",
+    "@daily-co/daily-js": "file:../../pluot-core/daily-js",
     "chart.js": "^4.4.0",
     "chartjs-plugin-annotation": "^3.0.1"
   }

@@ -7,6 +7,7 @@ export default class DailyCall {
     this.setupCallInstance();
     this.audioOn = true;
     this.videoOn = true;
+    this.shushMode = false;
   }
 
   setupCallInstance() {
@@ -106,6 +107,7 @@ export default class DailyCall {
     document.body.appendChild(audioEl);
     audioEl.srcObject = new MediaStream([evt.track]);
     audioEl.play();
+    if (this.shushMode) audioEl.muted = true;
   }
 
   destroyTrack(evt) {
